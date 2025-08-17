@@ -119,7 +119,7 @@ class WebDemoRunner:
                 segmentation_results = []
                 
                 # Run CubiCasa classification directly
-                self.status['current_step'] = 'Running CubiCasa floor plan detection...'
+                self.status['current_step'] = 'Running HVAC duct detection...'
                 self.status['progress'] = 50
                 classification_results = demo.run_classification(processed_images, use_real_api=True)
             else:

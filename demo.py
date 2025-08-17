@@ -159,7 +159,7 @@ class EstimatorCVDemo:
     
     def run_classification(self, image_paths: List[str], use_real_api: bool = False) -> List[Dict[str, Any]]:
         """
-        Step 4: Floor plan classification with CubiCasa5k
+        Step 4: HVAC duct detection
         
         Args:
             image_paths: List of paths to processed images
@@ -169,7 +169,7 @@ class EstimatorCVDemo:
             List of classification results
         """
         logger.info("=" * 60)
-        logger.info("STEP 4: Floor Plan Classification (CubiCasa5k)")
+        logger.info("STEP 4: HVAC Duct Detection")
         logger.info("=" * 60)
         
         try:
@@ -272,7 +272,7 @@ class EstimatorCVDemo:
                 f.write("Note: Demo mode - install model checkpoints for real segmentation\n\n")
             
             # Classification Summary
-            f.write("4. FLOOR PLAN CLASSIFICATION\n")
+            f.write("4. HVAC DUCT DETECTION\n")
             f.write("-" * 20 + "\n")
             if 'classification_results' in all_results:
                 total_elements = sum(r['analysis']['total_elements'] for r in all_results['classification_results'])
@@ -285,7 +285,7 @@ class EstimatorCVDemo:
                 f.write(f"Rooms detected: {total_rooms}\n")
                 f.write(f"Doors detected: {total_doors}\n")
                 f.write(f"Windows detected: {total_windows}\n")
-                f.write("Model: Roboflow CubiCasa5k\n\n")
+                f.write("Model: Roboflow Duct Detection\n\n")
             
             # File Locations
             f.write("5. OUTPUT FILES\n")

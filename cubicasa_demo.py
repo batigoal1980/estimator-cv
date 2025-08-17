@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Roboflow CubiCasa5k Integration for Estimator CV Demo
+Roboflow Duct Detection Integration for Estimator CV Demo
 Floor-plan-aware classification of architectural elements
 """
 
@@ -23,7 +23,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 class CubiCasaClassifier:
-    """Floor plan classification using Roboflow's CubiCasa5k model"""
+    """HVAC duct detection using Roboflow's duct detection model"""
     
     def __init__(self, api_key: str = None, model_url: str = None):
         """
@@ -37,44 +37,23 @@ class CubiCasaClassifier:
         if not self.api_key:
             logger.warning("No Roboflow API key provided. Set ROBOFLOW_API_KEY environment variable.")
         
-        # CubiCasa5k model - use the public version
-        # Try different model versions based on what's accessible
-        self.model_url = model_url or "https://detect.roboflow.com/cubicasa5k/1"
+        # Duct Detection model
+        self.model_url = model_url or "https://detect.roboflow.com/duct-detection-b4orj/1"
         
-        # CubiCasa5k-2 model class names (actual floor plan elements)
+        # Duct detection model class names (actual classes from the model)
         self.class_names = {
-            "Background": 0,
-            "Outdoor": 1, 
-            "Wall": 2,
-            "Kitchen": 3,
-            "Living Room": 4,
-            "Bed Room": 5,
-            "Bath": 6,
-            "Entry": 7,
-            "Railing": 8,
-            "Storage": 9,
-            "Garage": 10,
-            "Undefined": 11,
-            "Door": 12,
-            "Window": 13
+            "DUCT_RECTANGULAR": 0,
+            "DUCT_ROUND": 1,
         }
         
-        # Color mapping for visualization - distinct colors for each class
+        # Color mapping for HVAC/duct visualization - distinct colors for each class
         self.class_colors = {
-            'wall': '#0000FF',      # Blue
-            'door': '#FF0000',      # Red
-            'window': '#FFFF00',    # Yellow
-            'room': '#00FF00',      # Green
-            'stairs': '#FF00FF',    # Magenta
-            'symbol': '#00FFFF',    # Cyan
-            'text': '#FFA500',      # Orange
-            'furniture': '#800080', # Purple
-            'appliance': '#008000', # Dark Green
-            'fixture': '#000080',   # Navy
-            'other': '#808080'      # Gray
+            'duct_rectangular': '#0066FF',  # Blue - rectangular ducts
+            'duct_round': '#FF3333',        # Red - round ducts
+            'other': '#808080'              # Gray - other elements
         }
         
-        logger.info("CubiCasa classifier initialized")
+        logger.info("Duct Detection classifier initialized")
     
     def classify_image(self, image_path: str, confidence_threshold: float = 0.25) -> Dict[str, Any]:
         """
@@ -109,9 +88,9 @@ class CubiCasaClassifier:
                 # Initialize Roboflow
                 rf = Roboflow(api_key=self.api_key)
                 
-                # Access CubiCasa5k-2 model (version 3)
-                project = rf.workspace("floorplan-recognition").project("cubicasa5k-2-qpmsa")
-                model = project.version(3).model
+                # Access duct detection model
+                project = rf.workspace("duct-detection").project("duct-detection-b4orj")
+                model = project.version(1).model
                 
                 # Run inference
                 confidence_int = int(confidence_threshold * 100)
@@ -191,7 +170,7 @@ class CubiCasaClassifier:
                 
                 # Re-run prediction to get the result object
                 rf = Roboflow(api_key=self.api_key)
-                model = rf.workspace("floorplan-recognition").project("cubicasa5k-2-qpmsa").version(3).model
+                model = rf.workspace("duct-detection").project("duct-detection-b4orj").version(1).model
                 
                 # Get confidence threshold from the last run or use default
                 confidence = int(self.last_confidence * 100) if hasattr(self, 'last_confidence') else 25
@@ -226,7 +205,7 @@ class CubiCasaClassifier:
                     # Fallback to SDK's built-in save method
                     from roboflow import Roboflow
                     rf = Roboflow(api_key=self.api_key)
-                    model = rf.workspace("floorplan-recognition").project("cubicasa5k-2-qpmsa").version(3).model
+                    model = rf.workspace("duct-detection").project("duct-detection-b4orj").version(1).model
                     confidence = int(self.last_confidence * 100) if hasattr(self, 'last_confidence') else 25
                     
                     result = model.predict(image_path, confidence=confidence, overlap=50)
@@ -322,8 +301,8 @@ class CubiCasaClassifier:
             )
             ax2.add_patch(rect)
             
-            # Add label with matching color
-            label = f"{class_name} ({confidence:.2f})"
+            # Add label with just confidence percentage
+            label = f"{confidence:.0%}"  # Show as percentage without class name
             ax2.text(x1, y1 - 5, label, 
                     color=color, fontsize=8, weight='bold',
                     bbox=dict(boxstyle="round,pad=0.3", facecolor='white', alpha=0.8))
@@ -349,7 +328,7 @@ class CubiCasaClassifier:
         plt.figtext(0.02, 0.02, summary_text, fontsize=10, 
                    bbox=dict(boxstyle="round,pad=0.5", facecolor='white', alpha=0.8))
         
-        plt.suptitle(f"CubiCasa5k Floor Plan Classification - {Path(image_path).name}", fontsize=16)
+        plt.suptitle(f"HVAC Duct Detection - {Path(image_path).name}", fontsize=16)
         plt.tight_layout()
         
         # Save visualization
@@ -364,13 +343,13 @@ class CubiCasaClassifier:
     
     def analyze_floor_plan(self, classification_result: Dict[str, Any]) -> Dict[str, Any]:
         """
-        Analyze floor plan based on classification results
+        Analyze HVAC system based on detection results
         
         Args:
             classification_result: Classification results from classify_image
             
         Returns:
-            Dictionary with floor plan analysis
+            Dictionary with HVAC system analysis
         """
         detections = classification_result['detections']
         
@@ -396,7 +375,7 @@ class CubiCasaClassifier:
             elif detection['class'] == 'wall':
                 wall_area += area
         
-        # Floor plan analysis
+        # HVAC system analysis
         analysis = {
             'total_elements': len(detections),
             'class_distribution': class_counts,
@@ -429,7 +408,7 @@ class CubiCasaClassifier:
         # Classify image
         classification_result = self.classify_image(image_path, confidence_threshold)
         
-        # Analyze floor plan
+        # Analyze HVAC system
         analysis = self.analyze_floor_plan(classification_result)
         
         # Create visualization
@@ -504,8 +483,8 @@ class CubiCasaClassifier:
         with open(image_path, 'rb') as image_file:
             image_data = base64.b64encode(image_file.read()).decode()
         
-        # Roboflow API endpoint for CubiCasa5k-2 v3
-        url = f"https://detect.roboflow.com/cubicasa5k-2-qpmsa/3"
+        # Roboflow API endpoint for duct detection v1
+        url = f"https://detect.roboflow.com/duct-detection-b4orj/1"
         
         # API parameters
         params = {
@@ -595,7 +574,7 @@ class CubiCasaClassifier:
 
 def main():
     """Command line interface for CubiCasa classification"""
-    parser = argparse.ArgumentParser(description="CubiCasa5k Floor Plan Classification for Estimator CV Demo")
+    parser = argparse.ArgumentParser(description="HVAC Duct Detection for Estimator CV Demo")
     parser.add_argument("--input", "-i", required=True, help="Input image file or directory")
     parser.add_argument("--output", "-o", required=True, help="Output directory for results")
     parser.add_argument("--confidence", "-c", type=float, default=0.5, help="Confidence threshold (default: 0.5)")
