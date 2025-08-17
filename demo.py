@@ -173,7 +173,15 @@ class EstimatorCVDemo:
         logger.info("=" * 60)
         
         try:
-            self.classifier = CubiCasaClassifier(api_key='ZdkZuHA7GF5NdOfCwQo8')
+            # Use environment variable on Railway, fallback to hardcoded for local
+            api_key = os.getenv('ROBOFLOW_API_KEY', 'ZdkZuHA7GF5NdOfCwQo8')
+            
+            # Debug info to compare environments
+            is_railway = bool(os.getenv('RAILWAY_ENVIRONMENT'))
+            logger.info(f"🔍 Environment: {'Railway' if is_railway else 'Local'}")
+            logger.info(f"🔑 API Key: {'Environment Variable' if os.getenv('ROBOFLOW_API_KEY') else 'Hardcoded'}")
+            
+            self.classifier = CubiCasaClassifier(api_key=api_key)
             classification_results = []
             
             for image_path in image_paths:

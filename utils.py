@@ -10,9 +10,21 @@ import json
 import logging
 from pathlib import Path
 from typing import List, Dict, Any, Optional
-import cv2
+# import cv2  # Commented out for Railway compatibility
 import numpy as np
 from PIL import Image
+import os
+
+# Try to import cv2, but don't fail if it's not available
+try:
+    import cv2
+    CV2_AVAILABLE = True
+except ImportError:
+    CV2_AVAILABLE = False
+    if os.getenv('RAILWAY_ENVIRONMENT'):
+        print("CV2 not available on Railway - using PIL fallbacks")
+    else:
+        print("Warning: CV2 not available - some functions may not work")
 
 logger = logging.getLogger(__name__)
 
@@ -243,11 +255,7 @@ def check_system_requirements() -> Dict[str, bool]:
         'matplotlib': False
     }
     
-    try:
-        import cv2
-        requirements['opencv'] = True
-    except ImportError:
-        pass
+    requirements['opencv'] = CV2_AVAILABLE
     
     try:
         import PIL

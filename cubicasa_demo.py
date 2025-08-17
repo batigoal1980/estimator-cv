@@ -110,7 +110,9 @@ class CubiCasaClassifier:
             self.last_confidence = confidence_threshold
             
             # Run inference
-            result = model.predict(image_path, confidence=int(confidence_threshold * 100), overlap=50).json()
+            confidence_int = int(confidence_threshold * 100)
+            logger.info(f"🎯 API Parameters: confidence={confidence_int}, overlap=50")
+            result = model.predict(image_path, confidence=confidence_int, overlap=50).json()
             
             # Process predictions
             detections = []
@@ -241,13 +243,18 @@ class CubiCasaClassifier:
         import matplotlib
         matplotlib.use('Agg')
         
-        # Load image using PIL instead of cv2
+        # Load image using PIL instead of cv2 (to avoid libGL dependency on Railway)
         pil_image = Image.open(image_path)
         if pil_image is None:
             raise ValueError(f"Could not read image: {image_path}")
         
-        image_rgb = np.array(pil_image.convert('RGB'))
+        # Convert to RGB and ensure uint8 format (same as cv2 would produce)
+        image_rgb = np.array(pil_image.convert('RGB'), dtype=np.uint8)
         h, w = image_rgb.shape[:2]
+        
+        # Debug info for comparison
+        logger.info(f"📐 Image dimensions: {w}x{h}, dtype: {image_rgb.dtype}")
+        logger.info(f"🎨 Pixel range: [{image_rgb.min()}-{image_rgb.max()}]")
         
         # Get API dimensions for scaling
         api_width = classification_result.get('image_width', w)
@@ -283,14 +290,18 @@ class CubiCasaClassifier:
                 detection_count[class_name] = 0
             detection_count[class_name] += 1
             
-            # Use raw coordinates directly from API (they should match the image)
-            x_center = bbox['x']
-            y_center = bbox['y']
-            width = bbox['width']
-            height = bbox['height']
+            # Scale coordinates to match actual image dimensions
+            x_center = bbox['x'] * scale_x
+            y_center = bbox['y'] * scale_y
+            width = bbox['width'] * scale_x
+            height = bbox['height'] * scale_y
             
             x1 = x_center - width / 2
             y1 = y_center - height / 2
+            
+            # Debug coordinate scaling
+            if scale_x != 1.0 or scale_y != 1.0:
+                logger.debug(f"Scaled bbox: ({bbox['x']}, {bbox['y']}) -> ({x_center:.1f}, {y_center:.1f})")
             
             # Get color for this class
             color = self.class_colors.get(class_name.lower(), '#808080')  # Default to gray if class not found
