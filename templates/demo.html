@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CV Demo - {{ filename }} | Estimator CV Demo</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .demo-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            margin: 2rem 0;
+            padding: 2rem;
+        }
+        .progress-container {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+        .progress {
+            height: 25px;
+            border-radius: 15px;
+            background: #e9ecef;
+        }
+        .progress-bar {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            border-radius: 15px;
+            transition: width 0.5s ease;
+        }
+        .step-indicator {
+            display: flex;
+            justify-content: space-between;
+            margin: 2rem 0;
+        }
+        .step {
+            text-align: center;
+            flex: 1;
+            position: relative;
+        }
+        .step:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            width: 100%;
+            height: 2px;
+            background: #e9ecef;
+            z-index: 1;
+        }
+        .step.active::after {
+            background: #667eea;
+        }
+        .step-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #e9ecef;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 10px;
+            position: relative;
+            z-index: 2;
+            transition: all 0.3s ease;
+        }
+        .step.active .step-icon {
+            background: #667eea;
+            color: white;
+            transform: scale(1.1);
+        }
+        .step.completed .step-icon {
+            background: #28a745;
+            color: white;
+        }
+        .step.completed::after {
+            background: #28a745;
+        }
+        .step-label {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #6c757d;
+        }
+        .step.active .step-label {
+            color: #667eea;
+        }
+        .step.completed .step-label {
+            color: #28a745;
+        }
+        .demo-controls {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+        .btn-primary {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            border: none;
+            border-radius: 25px;
+            padding: 12px 30px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+        .btn-success {
+            background: linear-gradient(45deg, #28a745, #20c997);
+            border: none;
+            border-radius: 25px;
+            padding: 12px 30px;
+            font-weight: 600;
+        }
+        .results-section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+        .result-card {
+            background: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        .status-badge {
+            font-size: 0.8rem;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+        .status-running {
+            background: #fff3cd;
+            color: #856404;
+        }
+        .status-complete {
+            background: #d4edda;
+            color: #155724;
+        }
+        .status-error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .file-info {
+            background: #e9ecef;
+            border-radius: 10px;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+        .alert {
+            border-radius: 15px;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="text-center text-white py-4">
+            <h1 class="display-5 fw-bold">
+                <i class="fas fa-play-circle"></i> CV Demo Pipeline
+            </h1>
+            <p class="lead">Processing: {{ filename }}</p>
+            <a href="/" class="btn btn-outline-light">
+                <i class="fas fa-arrow-left"></i> Back to Upload
+            </a>
+        </div>
+
+        <!-- File Info -->
+        <div class="demo-container">
+            <div class="file-info">
+                <h5><i class="fas fa-image"></i> Image Information</h5>
+                <p><strong>Filename:</strong> {{ filename }}</p>
+                <p><strong>Status:</strong> <span id="fileStatus">Initializing detection...</span></p>
+            </div>
+        </div>
+
+        <!-- Demo Controls -->
+        <div class="demo-container">
+            <h3 class="text-center mb-4">
+                <i class="fas fa-cogs"></i> Detection Settings
+            </h3>
+            
+            <div class="row justify-content-center">
+                <div class="col-md-6 text-center">
+                    <button class="btn btn-primary btn-lg" id="startDemoBtn" onclick="startDemo()" disabled>
+                        <i class="fas fa-spinner fa-spin"></i> Auto-starting Detection...
+                    </button>
+                    <p class="text-muted mt-2">Using CubiCasa5k-2 model for architectural element detection</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Progress Section -->
+        <div class="demo-container" id="progressSection" style="display: none;">
+            <h3 class="text-center mb-4">
+                <i class="fas fa-tasks"></i> Pipeline Progress
+            </h3>
+            
+            <!-- Step Indicators -->
+            <div class="step-indicator">
+                <div class="step" id="step1">
+                    <div class="step-icon">
+                        <i class="fas fa-building"></i>
+                    </div>
+                    <div class="step-label">Floor Plan Detection</div>
+                </div>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="progress-container">
+                <div class="d-flex justify-content-between mb-2">
+                    <span id="currentStep">Ready to start...</span>
+                    <span id="progressPercent">0%</span>
+                </div>
+                <div class="progress">
+                    <div class="progress-bar" id="progressBar" role="progressbar" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <!-- Status Display -->
+            <div class="text-center">
+                <span class="status-badge status-running" id="statusBadge" style="display: none;">
+                    <i class="fas fa-spinner fa-spin"></i> Processing...
+                </span>
+            </div>
+        </div>
+
+        <!-- Results Section -->
+        <div class="demo-container" id="resultsSection" style="display: none;">
+            <h3 class="text-center mb-4">
+                <i class="fas fa-building"></i> Floor Plan Detection Results
+            </h3>
+            
+            <div class="row" id="resultsContent">
+                <!-- Results will be populated here -->
+            </div>
+        </div>
+
+        <!-- Error Section -->
+        <div class="demo-container" id="errorSection" style="display: none;">
+            <div class="alert alert-danger">
+                <h4><i class="fas fa-exclamation-triangle"></i> Demo Failed</h4>
+                <p id="errorMessage"></p>
+                <button class="btn btn-outline-danger" onclick="resetDemo()">
+                    <i class="fas fa-redo"></i> Try Again
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let demoRunning = false;
+        let statusInterval = null;
+
+        function startDemo() {
+            if (demoRunning) {
+                alert('Demo is already running!');
+                return;
+            }
+
+            // Show progress section
+            document.getElementById('progressSection').style.display = 'block';
+            document.getElementById('startDemoBtn').disabled = true;
+            document.getElementById('startDemoBtn').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Detecting...';
+
+            // Start demo
+            fetch('/api/start_demo', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    filename: '{{ filename }}',
+                    use_real_api: true  // Always use real API for image detection
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.message) {
+                    demoRunning = true;
+                    startStatusMonitoring();
+                } else {
+                    throw new Error(data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showError('Failed to start demo: ' + error.message);
+            });
+        }
+
+        function startStatusMonitoring() {
+            statusInterval = setInterval(checkStatus, 1000);
+        }
+
+        function checkStatus() {
+            fetch('/api/demo_status')
+                .then(response => response.json())
+                .then(status => {
+                    updateProgress(status);
+                    
+                    if (!status.running) {
+                        clearInterval(statusInterval);
+                        demoRunning = false;
+                        
+                        if (status.error) {
+                            showError(status.error);
+                        } else if (status.results) {
+                            showResults(status.results);
+                        }
+                        
+                        document.getElementById('startDemoBtn').disabled = false;
+                        document.getElementById('startDemoBtn').innerHTML = '<i class="fas fa-redo"></i> Run Again';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error checking status:', error);
+                });
+        }
+
+        function updateProgress(status) {
+            // Update progress bar
+            const progressBar = document.getElementById('progressBar');
+            const progressPercent = document.getElementById('progressPercent');
+            const currentStep = document.getElementById('currentStep');
+            const statusBadge = document.getElementById('statusBadge');
+            
+            progressBar.style.width = status.progress + '%';
+            progressPercent.textContent = status.progress + '%';
+            currentStep.textContent = status.current_step;
+            
+            // Show status badge
+            statusBadge.style.display = 'block';
+            
+            // Update step indicators
+            updateStepIndicators(status.progress);
+        }
+
+        function updateStepIndicators(progress) {
+            const step = document.getElementById('step1');
+            
+            if (progress >= 100) {
+                step.classList.add('completed');
+                step.classList.remove('active');
+            } else if (progress > 0) {
+                step.classList.add('active');
+                step.classList.remove('completed');
+            } else {
+                step.classList.remove('active', 'completed');
+            }
+        }
+
+        function showResults(results) {
+            const resultsSection = document.getElementById('resultsSection');
+            const resultsContent = document.getElementById('resultsContent');
+            
+            // Hide progress section
+            document.getElementById('progressSection').style.display = 'none';
+            
+            // Build clean image display
+            let imagesHtml = '';
+            
+            // Show only CubiCasa classification results
+            if (results.classification_results && results.classification_results > 0) {
+                results.processed_images.forEach((img, idx) => {
+                    // Construct the correct path for the CubiCasa result
+                    // session_dir contains "web_results/session_TIMESTAMP", but we only need the session part
+                    const sessionName = results.session_dir.replace('web_results/', '');
+                    const baseName = img.replace('.png', '');
+                    // Use the correct filename with _demo suffix when SDK visualization is used
+                    const classPath = `/web_results/${sessionName}/04_classified/${baseName}_cubicasa_demo.png`;
+                    
+                    imagesHtml += `
+                        <div class="col-12">
+                            <div class="text-center">
+                                <img src="${classPath}" class="img-fluid shadow-lg rounded" 
+                                     alt="Floor plan detection" 
+                                     style="max-width: 100%; height: auto;">
+                            </div>
+                            <div class="mt-3">
+                                <div class="alert alert-info">
+                                    <h6><i class="fas fa-shapes"></i> Detected Object Classes:</h6>
+                                    <div class="d-flex flex-wrap gap-2 mt-2">
+                                        <span class="badge bg-primary">Walls</span>
+                                        <span class="badge bg-success">Doors</span>
+                                        <span class="badge bg-warning text-dark">Windows</span>
+                                        <span class="badge bg-info">Rooms</span>
+                                        <span class="badge bg-secondary">Other Elements</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+            } else {
+                // Fallback if no classification results
+                imagesHtml = `
+                    <div class="col-12">
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle"></i> No detection results available. Please try running the demo again.
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // Simple, clean results display
+            resultsContent.innerHTML = imagesHtml;
+            
+            // Show results section
+            resultsSection.style.display = 'block';
+            
+            // Update file status
+            document.getElementById('fileStatus').innerHTML = 
+                '<span class="text-success"><i class="fas fa-check-circle"></i> Detection Complete</span>';
+        }
+
+        function showError(errorMessage) {
+            const errorSection = document.getElementById('errorSection');
+            const errorMessageElement = document.getElementById('errorMessage');
+            
+            // Hide progress section
+            document.getElementById('progressSection').style.display = 'none';
+            
+            // Show error
+            errorMessageElement.textContent = errorMessage;
+            errorSection.style.display = 'block';
+            
+            // Update file status
+            document.getElementById('fileStatus').innerHTML = 
+                '<span class="text-danger"><i class="fas fa-times-circle"></i> Processing Failed</span>';
+        }
+
+        function resetDemo() {
+            // Hide all sections
+            document.getElementById('progressSection').style.display = 'none';
+            document.getElementById('resultsSection').style.display = 'none';
+            document.getElementById('errorSection').style.display = 'none';
+            
+            // Reset progress
+            document.getElementById('progressBar').style.width = '0%';
+            document.getElementById('progressPercent').textContent = '0%';
+            document.getElementById('currentStep').textContent = 'Ready to start...';
+            
+            // Reset step indicators
+            ['step1', 'step2', 'step3', 'step4'].forEach(stepId => {
+                document.getElementById(stepId).classList.remove('active', 'completed');
+            });
+            
+            // Reset buttons
+            document.getElementById('startDemoBtn').disabled = false;
+            document.getElementById('startDemoBtn').innerHTML = '<i class="fas fa-rocket"></i> Start Demo';
+            
+            // Update file status
+            document.getElementById('fileStatus').innerHTML = 'Ready to process';
+        }
+
+        function downloadResults() {
+            // This would trigger download of results
+            alert('Download functionality would be implemented here');
+        }
+
+        // Auto-start demo when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            // Automatically start the demo after a short delay
+            setTimeout(function() {
+                console.log('Auto-starting floor plan detection...');
+                startDemo();
+            }, 500); // Small delay to ensure page is fully loaded
+        });
+    </script>
+</body>
+</html>

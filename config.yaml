@@ -1,0 +1,184 @@
+# Estimator CV Demo Configuration
+# Copy this file and modify as needed for your use case
+
+# PDF Processing Settings
+pdf_processing:
+  default_dpi: 300
+  max_dpi: 600
+  enable_deskew: true
+  deskew_threshold: 0.5
+  output_format: "PNG"
+  thread_count: 4
+
+# Layout Detection Settings
+layout_detection:
+  model: "PubLayNet"  # Options: PubLayNet, DocBank, FUNSD
+  confidence_threshold: 0.5
+  enable_ocr: true
+  ocr_languages: ["eng"]
+  visualization:
+    save_annotations: true
+    show_text_preview: true
+    colors:
+      text: "blue"
+      title: "red"
+      list: "green"
+      table: "orange"
+      figure: "purple"
+
+# Segmentation Settings
+segmentation:
+  sam2:
+    model_type: "vit_h"  # Options: vit_h, vit_l, vit_b
+    checkpoint_path: "sam2_hq.pth"
+    enable_multimask: true
+    mask_threshold: 0.5
+  
+  grounding_dino:
+    config_path: "groundingdino_swint_ogc.py"
+    checkpoint_path: "groundingdino_swint_ogc.pth"
+    confidence_threshold: 0.35
+    text_threshold: 0.35
+  
+  visualization:
+    save_masks: true
+    save_overlays: true
+    mask_color: [255, 0, 0]  # Red
+    transparency: 0.8
+
+# Classification Settings
+classification:
+  model: "CubiCasa5k"
+  api_key_env_var: "ROBOFLOW_API_KEY"
+  confidence_threshold: 0.5
+  overlap_threshold: 0.5
+  enable_demo_mode: true
+  
+  # CubiCasa5k specific settings
+  cubicasa:
+    model_url: "https://detect.roboflow.com/cubicasa5k-floorplan/1"
+    class_mapping:
+      0: "wall"
+      1: "window"
+      2: "door"
+      3: "room"
+      4: "opening"
+      5: "stairs"
+      6: "balcony"
+      7: "elevator"
+      8: "escalator"
+      9: "furniture"
+      10: "appliance"
+      11: "fixture"
+      12: "text"
+      13: "dimension"
+      14: "symbol"
+      15: "other"
+
+# Output Settings
+output:
+  base_directory: "demo_outputs"
+  create_timestamped_sessions: true
+  save_intermediate_results: true
+  compression_quality: 95
+  
+  # Directory structure
+  directories:
+    - "01_pdf_processed"
+    - "02_layout_detected"
+    - "03_segmented"
+    - "04_classified"
+    - "final_results"
+  
+  # File naming
+  naming:
+    image_prefix: "page"
+    layout_suffix: "_layout"
+    segmentation_suffix: "_seg"
+    classification_suffix: "_cubicasa"
+    report_name: "demo_summary_report.txt"
+
+# Performance Settings
+performance:
+  enable_gpu: true
+  batch_size: 1
+  max_workers: 4
+  memory_limit_gb: 8
+  
+  # Caching
+  enable_cache: true
+  cache_directory: ".cache"
+  cache_expiry_hours: 24
+
+# Logging Settings
+logging:
+  level: "INFO"  # Options: DEBUG, INFO, WARNING, ERROR
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  save_to_file: true
+  log_directory: "logs"
+  max_log_size_mb: 10
+  backup_count: 5
+
+# Demo Settings
+demo:
+  enable_mock_mode: true
+  show_progress_bars: true
+  interactive_mode: false
+  
+  # Sample data
+  create_sample_pdf: true
+  sample_pdf_name: "demo_sample.pdf"
+  
+  # Quick start
+  auto_select_pdf: false
+  default_parameters: true
+
+# Integration Settings
+integration:
+  # External APIs
+  roboflow:
+    base_url: "https://detect.roboflow.com"
+    timeout_seconds: 30
+    retry_attempts: 3
+  
+  # Model repositories
+  model_download:
+    enable_auto_download: false
+    download_directory: "models"
+    verify_checksums: true
+  
+  # Export formats
+  export:
+    enable_json: true
+    enable_csv: false
+    enable_xml: false
+    enable_pickle: false
+
+# Customization
+customization:
+  # Architectural domain specific
+  architectural:
+    room_types: ["bedroom", "bathroom", "kitchen", "living_room", "dining_room"]
+    fixture_types: ["sink", "toilet", "bathtub", "shower", "cabinet"]
+    material_types: ["wood", "tile", "carpet", "concrete", "drywall"]
+  
+  # Estimation specific
+  estimation:
+    enable_area_calculation: true
+    enable_cost_estimation: false
+    unit_measurements: "feet"  # Options: feet, meters, inches, cm
+    precision: 2
+  
+  # Visualization themes
+  themes:
+    default:
+      primary_color: "#007bff"
+      secondary_color: "#6c757d"
+      success_color: "#28a745"
+      warning_color: "#ffc107"
+      danger_color: "#dc3545"
+    
+    professional:
+      primary_color: "#2c3e50"
+      secondary_color: "#34495e"
+      accent_color: "#3498db"
