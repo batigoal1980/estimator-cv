@@ -7,6 +7,11 @@ Orchestrates the complete pipeline: PDF → Layout Detection → Segmentation �
 import argparse
 import os
 import sys
+
+# Set headless mode for OpenCV on server environments
+if os.environ.get('RAILWAY_ENVIRONMENT'):
+    os.environ['OPENCV_VIDEOIO_PRIORITY_MSMF'] = '0'
+    os.environ['OPENCV_VIDEOIO_PRIORITY_GSTREAMER'] = '0'
 from pathlib import Path
 from typing import List, Dict, Any
 import logging

@@ -6,6 +6,11 @@ Provides a web interface for the complete CV pipeline
 
 import os
 import sys
+
+# Set headless mode for OpenCV on server environments
+if os.environ.get('RAILWAY_ENVIRONMENT'):
+    os.environ['OPENCV_VIDEOIO_PRIORITY_MSMF'] = '0'
+    os.environ['OPENCV_VIDEOIO_PRIORITY_GSTREAMER'] = '0'
 import json
 import logging
 import tempfile
