@@ -1,12 +1,8 @@
 [phases.setup]
-nixPkgs = ["python311", "gcc", "pkg-config", "poppler", "tesseract"]
-aptPkgs = ["libgl1-mesa-glx", "libglib2.0-0", "libsm6", "libxext6", "libxrender1", "libgomp1", "tesseract-ocr", "poppler-utils"]
+nixPkgs = ["python311", "gcc", "pkg-config", "poppler", "tesseract", "glib", "xorg.libSM", "xorg.libXext", "xorg.libXrender", "mesa", "libGL"]
 
 [phases.install]
 cmds = ["python -m venv /opt/venv && . /opt/venv/bin/activate && pip install --upgrade pip && pip install -r requirements.txt"]
 
 [start]
 cmd = "python app.py"
-
-[variables]
-LD_PRELOAD = "/usr/lib/x86_64-linux-gnu/libgomp.so.1"
