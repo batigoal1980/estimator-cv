@@ -95,73 +95,79 @@ class CubiCasaClassifier:
         
         logger.info(f"Classifying image: {image_path}")
         
-        try:
-            # Use the Roboflow Python SDK
-            from roboflow import Roboflow
-            
-            # Initialize Roboflow
-            rf = Roboflow(api_key=self.api_key)
-            
-            # Access CubiCasa5k-2 model (version 3)
-            project = rf.workspace("floorplan-recognition").project("cubicasa5k-2-qpmsa")
-            model = project.version(3).model
-            
-            # Store confidence for visualization
-            self.last_confidence = confidence_threshold
-            
-            # Run inference
-            confidence_int = int(confidence_threshold * 100)
-            logger.info(f"🎯 API Parameters: confidence={confidence_int}, overlap=50")
-            result = model.predict(image_path, confidence=confidence_int, overlap=50).json()
-            
-            # Process predictions
-            detections = []
-            for prediction in result.get('predictions', []):
-                detection = {
-                    'class': prediction['class'],
-                    'confidence': float(prediction['confidence']),  # Ensure it's a float
-                    'bbox': {
-                        'x': float(prediction['x']),
-                        'y': float(prediction['y']),
-                        'width': float(prediction['width']),
-                        'height': float(prediction['height'])
-                    }
+        # Store confidence for visualization
+        self.last_confidence = confidence_threshold
+        
+        # Check if we're on Railway and SDK might have libGL issues
+        on_railway = bool(os.getenv('RAILWAY_ENVIRONMENT'))
+        
+        if not on_railway:
+            try:
+                # Use the Roboflow Python SDK (local only)
+                from roboflow import Roboflow
+                
+                # Initialize Roboflow
+                rf = Roboflow(api_key=self.api_key)
+                
+                # Access CubiCasa5k-2 model (version 3)
+                project = rf.workspace("floorplan-recognition").project("cubicasa5k-2-qpmsa")
+                model = project.version(3).model
+                
+                # Run inference
+                confidence_int = int(confidence_threshold * 100)
+                logger.info(f"🎯 SDK API Parameters: confidence={confidence_int}, overlap=50")
+                result = model.predict(image_path, confidence=confidence_int, overlap=50).json()
+                
+            except Exception as e:
+                logger.warning(f"SDK failed locally: {e}, trying REST API...")
+                on_railway = True  # Fall through to REST API
+        
+        if on_railway:
+            # Use REST API directly on Railway (avoids libGL issues)
+            logger.info("Using Roboflow REST API (Railway/headless mode)")
+            result = self._call_rest_api(image_path, confidence_threshold)
+        
+        # Process predictions (works for both SDK and REST API results)
+        detections = []
+        for prediction in result.get('predictions', []):
+            detection = {
+                'class': prediction['class'],
+                'confidence': float(prediction['confidence']),  # Ensure it's a float
+                'bbox': {
+                    'x': float(prediction['x']),
+                    'y': float(prediction['y']),
+                    'width': float(prediction['width']),
+                    'height': float(prediction['height'])
                 }
-                detections.append(detection)
-            
-            # Get image dimensions from API response (these are the dimensions used for predictions)
-            api_width = result.get('image', {}).get('width')
-            api_height = result.get('image', {}).get('height')
-            
-            # Also get actual image dimensions for scaling if needed
-            from PIL import Image
-            with Image.open(image_path) as img:
-                actual_width, actual_height = img.size
-            
-            # Use API dimensions if available, otherwise use actual dimensions
-            # Ensure dimensions are integers
-            img_width = int(api_width) if api_width else actual_width
-            img_height = int(api_height) if api_height else actual_height
-            
-            result_data = {
-                'image_path': image_path,
-                'image_width': img_width,
-                'image_height': img_height,
-                'actual_width': actual_width,
-                'actual_height': actual_height,
-                'detections': detections,
-                'total_detections': len(detections)
             }
-            
-            logger.info(f"✅ Detected {len(detections)} architectural elements using Roboflow SDK")
-            return result_data
-            
-        except ImportError as e:
-            logger.error(f"Roboflow SDK not available: {e}")
-            raise RuntimeError("Please install roboflow package: pip install roboflow")
-        except Exception as e:
-            logger.error(f"Error classifying image: {e}")
-            raise
+            detections.append(detection)
+        
+        # Get image dimensions from API response (these are the dimensions used for predictions)
+        api_width = result.get('image', {}).get('width')
+        api_height = result.get('image', {}).get('height')
+        
+        # Also get actual image dimensions for scaling if needed
+        from PIL import Image
+        with Image.open(image_path) as img:
+            actual_width, actual_height = img.size
+        
+        # Use API dimensions if available, otherwise use actual dimensions
+        # Ensure dimensions are integers
+        img_width = int(api_width) if api_width else actual_width
+        img_height = int(api_height) if api_height else actual_height
+        
+        result_data = {
+            'image_path': image_path,
+            'image_width': img_width,
+            'image_height': img_height,
+            'actual_width': actual_width,
+            'actual_height': actual_height,
+            'detections': detections,
+            'total_detections': len(detections)
+        }
+        
+        logger.info(f"✅ Detected {len(detections)} architectural elements using {'REST API' if on_railway else 'SDK'}")
+        return result_data
     
     def visualize_classification(self, image_path: str, classification_result: Dict[str, Any], 
                                 output_path: str = None, use_sdk_viz: bool = False) -> str:
@@ -486,6 +492,41 @@ class CubiCasaClassifier:
                 continue
         
         return results
+    
+    def _call_rest_api(self, image_path: str, confidence_threshold: float) -> Dict[str, Any]:
+        """
+        Call Roboflow REST API directly (avoids SDK libGL issues)
+        """
+        import requests
+        import base64
+        
+        # Read and encode image
+        with open(image_path, 'rb') as image_file:
+            image_data = base64.b64encode(image_file.read()).decode()
+        
+        # Roboflow API endpoint for CubiCasa5k-2 v3
+        url = f"https://detect.roboflow.com/cubicasa5k-2-qpmsa/3"
+        
+        # API parameters
+        params = {
+            'api_key': self.api_key,
+            'confidence': int(confidence_threshold * 100),
+            'overlap': 50
+        }
+        
+        # Make POST request
+        logger.info(f"🌐 REST API call: confidence={params['confidence']}, overlap={params['overlap']}")
+        response = requests.post(url, 
+                               data=image_data,
+                               params=params,
+                               headers={'Content-Type': 'application/x-www-form-urlencoded'})
+        
+        if response.status_code != 200:
+            raise Exception(f"API request failed: {response.status_code} - {response.text}")
+        
+        result = response.json()
+        logger.info(f"✅ REST API returned {len(result.get('predictions', []))} detections")
+        return result
     
     def demo_without_api(self, image_path: str, output_dir: str) -> Dict[str, Any]:
         """
