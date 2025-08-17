@@ -18,16 +18,19 @@ import threading
 import time
 
 # Import our demo modules
+EstimatorCVDemo = None
+error_msg = None
 try:
     from demo import EstimatorCVDemo
-except ImportError as e:
-    print(f"Error importing EstimatorCVDemo: {e}")
+except ImportError as import_error:
+    error_msg = str(import_error)
+    print(f"Error importing EstimatorCVDemo: {error_msg}")
     import traceback
     traceback.print_exc()
     # Create a dummy class to prevent NameError
     class EstimatorCVDemo:
         def __init__(self, *args, **kwargs):
-            raise RuntimeError(f"EstimatorCVDemo import failed: {e}")
+            raise RuntimeError(f"EstimatorCVDemo import failed: {error_msg}")
 
 try:
     from utils import create_demo_sample_pdf, validate_pdf_file
