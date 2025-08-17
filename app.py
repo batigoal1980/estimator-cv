@@ -20,10 +20,24 @@ import time
 # Import our demo modules
 try:
     from demo import EstimatorCVDemo
+except ImportError as e:
+    print(f"Error importing EstimatorCVDemo: {e}")
+    import traceback
+    traceback.print_exc()
+    # Create a dummy class to prevent NameError
+    class EstimatorCVDemo:
+        def __init__(self, *args, **kwargs):
+            raise RuntimeError(f"EstimatorCVDemo import failed: {e}")
+
+try:
     from utils import create_demo_sample_pdf, validate_pdf_file
 except ImportError as e:
-    print(f"Warning: Could not import demo modules: {e}")
-    print("Web interface will run in limited mode")
+    print(f"Warning: Could not import utils: {e}")
+    # Define dummy functions
+    def create_demo_sample_pdf():
+        return None
+    def validate_pdf_file(file):
+        return True
 
 # Configure Flask app
 app = Flask(__name__)

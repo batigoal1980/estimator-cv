@@ -350,14 +350,16 @@
         function updateStepIndicators(progress) {
             const step = document.getElementById('step1');
             
-            if (progress >= 100) {
-                step.classList.add('completed');
-                step.classList.remove('active');
-            } else if (progress > 0) {
-                step.classList.add('active');
-                step.classList.remove('completed');
-            } else {
-                step.classList.remove('active', 'completed');
+            if (step) {
+                if (progress >= 100) {
+                    step.classList.add('completed');
+                    step.classList.remove('active');
+                } else if (progress > 0) {
+                    step.classList.add('active');
+                    step.classList.remove('completed');
+                } else {
+                    step.classList.remove('active', 'completed');
+                }
             }
         }
 
@@ -452,9 +454,12 @@
             document.getElementById('progressPercent').textContent = '0%';
             document.getElementById('currentStep').textContent = 'Ready to start...';
             
-            // Reset step indicators
+            // Reset step indicators (check if they exist first)
             ['step1', 'step2', 'step3', 'step4'].forEach(stepId => {
-                document.getElementById(stepId).classList.remove('active', 'completed');
+                const element = document.getElementById(stepId);
+                if (element) {
+                    element.classList.remove('active', 'completed');
+                }
             });
             
             // Reset buttons
