@@ -212,7 +212,7 @@ class CubiCasaClassifier:
                 
                 # Save using SDK's built-in visualization
                 if output_path is None:
-                    output_path = image_path.replace('.png', '_cubicasa_demo.png')
+                    output_path = f"{Path(image_path).stem}_cubicasa_demo.png"
                 
                 result.save(output_path)
                 logger.info(f"✅ Saved SDK visualization to {output_path}")
@@ -232,7 +232,7 @@ class CubiCasaClassifier:
                     result = model.predict(image_path, confidence=confidence, overlap=50)
                     
                     if output_path is None:
-                        output_path = image_path.replace('.png', '_cubicasa_demo.png')
+                        output_path = f"{Path(image_path).stem}_cubicasa_demo.png"
                     
                     # Use SDK's built-in visualization (will be all blue but has all detections)
                     result.save(output_path)
@@ -354,7 +354,7 @@ class CubiCasaClassifier:
         
         # Save visualization
         if output_path is None:
-            output_path = image_path.replace('.png', '_cubicasa_demo.png')
+            output_path = f"{Path(image_path).stem}_cubicasa_demo.png"
         
         plt.savefig(output_path, dpi=300, bbox_inches='tight')
         plt.close()
