@@ -345,6 +345,9 @@ if __name__ == '__main__':
     print("🚀 Starting Estimator CV Demo Web Interface...")
     print("📁 Upload folder:", app.config['UPLOAD_FOLDER'])
     print("📁 Results folder:", app.config['RESULTS_FOLDER'])
-    print("🌐 Web interface will be available at: http://localhost:5002")
     
-    app.run(debug=True, host='0.0.0.0', port=5002)
+    # Use PORT from environment variable (for Railway) or default to 5002
+    port = int(os.environ.get('PORT', 5002))
+    print(f"🌐 Web interface will be available at: http://localhost:{port}")
+    
+    app.run(debug=True, host='0.0.0.0', port=port)
