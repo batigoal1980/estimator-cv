@@ -379,7 +379,8 @@
                     // Construct the correct path for the CubiCasa result
                     // session_dir contains "web_results/session_TIMESTAMP", but we only need the session part
                     const sessionName = results.session_dir.replace('web_results/', '');
-                    const baseName = img.replace('.png', '');
+                    // Remove file extension properly for any file type (JPG, PNG, etc.)
+                    const baseName = img.substring(0, img.lastIndexOf('.')) || img;
                     // Use the correct filename with _demo suffix when SDK visualization is used
                     const classPath = `/web_results/${sessionName}/04_classified/${baseName}_cubicasa_demo.png`;
                     
