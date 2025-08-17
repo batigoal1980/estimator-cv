@@ -9,7 +9,7 @@ import os
 import sys
 from pathlib import Path
 from typing import List, Dict, Any, Optional
-import cv2
+# import cv2  # Removed to avoid libGL dependency on Railway
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
@@ -241,13 +241,13 @@ class CubiCasaClassifier:
         import matplotlib
         matplotlib.use('Agg')
         
-        # Load image
-        image = cv2.imread(image_path)
-        if image is None:
+        # Load image using PIL instead of cv2
+        pil_image = Image.open(image_path)
+        if pil_image is None:
             raise ValueError(f"Could not read image: {image_path}")
         
-        image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-        h, w = image.shape[:2]
+        image_rgb = np.array(pil_image.convert('RGB'))
+        h, w = image_rgb.shape[:2]
         
         # Get API dimensions for scaling
         api_width = classification_result.get('image_width', w)

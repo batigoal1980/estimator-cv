@@ -1,0 +1,24 @@
+# PDF Processing
+PyPDF2==3.0.1
+pdf2image==1.16.3
+Pillow==10.4.0
+
+# Image Processing (no opencv for Railway)
+numpy==1.26.4
+matplotlib==3.9.2
+seaborn==0.13.2
+
+# Utilities
+tqdm==4.66.1
+requests==2.32.3
+
+# Web Interface
+Flask==3.0.3
+Werkzeug==3.0.3
+
+# CubiCasa API
+supervision>=0.16.0
+inference-sdk
+roboflow==1.2.6
+scipy==1.11.4
+pyyaml==6.0.1

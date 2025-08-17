@@ -1,8 +1,11 @@
 [phases.setup]
-nixPkgs = ["python311", "gcc", "pkg-config", "poppler", "tesseract", "glib", "xorg.libSM", "xorg.libXext", "xorg.libXrender", "mesa", "libGL"]
+nixPkgs = ["python311", "gcc", "pkg-config"]
 
 [phases.install]
-cmds = ["python -m venv /opt/venv && . /opt/venv/bin/activate && pip install --upgrade pip && pip install -r requirements.txt"]
+cmds = [
+    "python -m venv /opt/venv && . /opt/venv/bin/activate && pip install --upgrade pip",
+    ". /opt/venv/bin/activate && pip install -r requirements_railway.txt"
+]
 
 [start]
 cmd = "python app.py"

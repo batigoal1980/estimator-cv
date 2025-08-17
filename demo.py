@@ -19,9 +19,9 @@ import time
 from datetime import datetime
 
 # Import our modules
-from pdf_processor import PDFProcessor
-from layout_detector import LayoutDetector
-from sam2_grounding import SAM2GroundingSegmenter
+# from pdf_processor import PDFProcessor  # Not needed - only processing images
+# from layout_detector import LayoutDetector  # Not needed for simple image processing  
+# from sam2_grounding import SAM2GroundingSegmenter  # Not needed for simple image processing
 from cubicasa_demo import CubiCasaClassifier
 
 # Configure logging
@@ -84,23 +84,12 @@ class EstimatorCVDemo:
             List of paths to processed images
         """
         logger.info("=" * 60)
-        logger.info("STEP 1: PDF Processing & Rasterization")
+        logger.info("STEP 1: PDF Processing - SKIPPED (Image only mode)")
         logger.info("=" * 60)
         
-        try:
-            self.pdf_processor = PDFProcessor(dpi=dpi)
-            processed_images = self.pdf_processor.process_pdf(
-                pdf_path, 
-                os.path.join(self.session_dir, "01_pdf_processed"),
-                deskew=deskew
-            )
-            
-            logger.info(f"✅ PDF processing complete: {len(processed_images)} images generated")
-            return processed_images
-            
-        except Exception as e:
-            logger.error(f"❌ PDF processing failed: {e}")
-            raise
+        # PDF processing disabled - only processing images
+        logger.info("✅ PDF processing skipped - using direct image input")
+        return []  # Return empty list since we're not processing PDFs
     
     def run_layout_detection(self, image_paths: List[str]) -> List[Dict[str, Any]]:
         """
@@ -113,32 +102,12 @@ class EstimatorCVDemo:
             List of layout detection results
         """
         logger.info("=" * 60)
-        logger.info("STEP 2: Layout Detection with LayoutParser")
+        logger.info("STEP 2: Layout Detection - SKIPPED (Not needed for image processing)")
         logger.info("=" * 60)
         
-        try:
-            self.layout_detector = LayoutDetector(model_name="PubLayNet")
-            layout_results = []
-            
-            for image_path in image_paths:
-                logger.info(f"Detecting layout in: {os.path.basename(image_path)}")
-                result = self.layout_detector.process_image(
-                    image_path, 
-                    os.path.join(self.session_dir, "02_layout_detected")
-                )
-                layout_results.append(result)
-                
-                # Show quick stats
-                stats = result['statistics']
-                logger.info(f"  📊 Detected {stats['total_regions']} regions")
-                logger.info(f"  🏠 Figures: {stats['figure_regions']}, Tables: {stats['table_regions']}, Text: {stats['text_regions']}")
-            
-            logger.info(f"✅ Layout detection complete: {len(layout_results)} images processed")
-            return layout_results
-            
-        except Exception as e:
-            logger.error(f"❌ Layout detection failed: {e}")
-            raise
+        # Layout detection disabled for simple image processing
+        logger.info("✅ Layout detection skipped")
+        return []  # Return empty list
     
     def run_segmentation(self, image_paths: List[str]) -> List[Dict[str, Any]]:
         """
