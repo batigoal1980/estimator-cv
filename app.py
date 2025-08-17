@@ -55,8 +55,17 @@ app.config['UPLOAD_FOLDER'] = 'uploads'
 app.config['RESULTS_FOLDER'] = 'web_results'
 
 # Ensure directories exist
-os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
-os.makedirs(app.config['RESULTS_FOLDER'], exist_ok=True)
+try:
+    os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+    os.makedirs(app.config['RESULTS_FOLDER'], exist_ok=True)
+except Exception as e:
+    print(f"Warning: Could not create directories: {e}")
+    # Use /tmp as fallback on Railway
+    if os.environ.get('RAILWAY_ENVIRONMENT'):
+        app.config['UPLOAD_FOLDER'] = '/tmp/uploads'
+        app.config['RESULTS_FOLDER'] = '/tmp/web_results'
+        os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+        os.makedirs(app.config['RESULTS_FOLDER'], exist_ok=True)
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

@@ -1,6 +1,6 @@
 [phases.setup]
-nixPkgs = ["python311", "gcc", "pkg-config", "poppler"]
-aptPkgs = ["libgl1-mesa-glx", "libglib2.0-0", "libsm6", "libxext6", "libxrender1", "libgomp1"]
+nixPkgs = ["python311", "gcc", "pkg-config", "poppler", "tesseract"]
+aptPkgs = ["libgl1-mesa-glx", "libglib2.0-0", "libsm6", "libxext6", "libxrender1", "libgomp1", "tesseract-ocr", "poppler-utils"]
 
 [phases.install]
 cmds = ["python -m venv /opt/venv && . /opt/venv/bin/activate && pip install --upgrade pip && pip install -r requirements.txt"]
